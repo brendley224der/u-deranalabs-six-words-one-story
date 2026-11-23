@@ -17,24 +17,35 @@ OUTPUT_PATH = "/output/entry.txt"
 
 # Exactly six words, 32 characters.
 STORY = "The garden grew back. He didn't."
+WORD_COUNT = 6
+
+
+def validate(text: str) -> list[str]:
+    """Check the story against the gate: 1-60 chars, exactly six words."""
+    words = text.split()
+    assert len(words) == WORD_COUNT, (
+        f"story must be exactly {WORD_COUNT} words, got {len(words)}")
+    assert 1 <= len(text) <= 60, (
+        f"entry must be 1-60 characters, got {len(text)}")
+    assert text.strip(), "entry must not be only whitespace"
+    assert text == text.strip(), "entry must not start or end with whitespace"
+    return words
 
 
 def main() -> None:
     text = STORY
-    words = text.split()
-    assert len(words) == 6, f"story must be exactly six words, got {len(words)}"
-    assert 1 <= len(text) <= 60, f"entry must be 1-60 characters, got {len(text)}"
-    assert text.strip(), "entry must not be only whitespace"
+    validate(text)
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     tmp_path = OUTPUT_PATH + ".tmp"
     with open(tmp_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(text)
     os.replace(tmp_path, OUTPUT_PATH)
-    # Read back what we wrote: the entry that ships must be exactly
-    # the text we checked above, byte for byte.
+    # Read back what we wrote and validate it again: the entry that
+    # ships must be exactly the text we checked above, byte for byte.
     with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
         written = f.read()
     assert written == text, "round-trip mismatch in entry.txt"
+    validate(written)
     print(written)
 
 
